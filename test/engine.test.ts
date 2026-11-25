@@ -92,7 +92,11 @@ const baseFetch = async (url: string, init: { method?: string; body?: string } =
 
   if (path === '/user') return ok({ id: 1, username: 'nik', name: 'Nik', avatar_url: '' });
   if (path === '/merge_requests') {
+    const reqState = u.searchParams.get('state');
     const after = u.searchParams.get('created_after');
+    if (reqState === 'opened') {
+      return ok(state.feature.state === 'opened' ? [mrJson(1, state.feature)] : []);
+    }
     return ok(after && after > '2025-01-01T00:00:00Z' ? [] : [mrJson(1, state.feature)]);
   }
   const single = path.match(new RegExp(`^/projects/${PID}/pipelines/(\\d+)(/jobs)?$`));
@@ -170,11 +174,11 @@ const titles = () => notifications.map((n) => n.title);
 test('feature → develop → auto promotion → master pipeline → staging', async () => {
   await store.set('auth', { kind: 'pat', token: 't' });
   await runPollTick();
-  await store.update('rules', (r) => r.map((x) => ({ ...x, autoPromote: 'on', createdAt: '2020-01-01T00:00:00Z' })));
-  await store.set('lastDiscovery', null);
-
-  await runPollTick();
-  assert.equal((await firstWatch()).stage, 'open');
+  assert.equal((await firstWatch()).stage, 'open', 'picks up open MR from the last 7 days on first sign-in');
+  await store.update('watches', (all) => {
+    for (const w of Object.values(all)) w.autoPromote = 'on';
+  });
+  await store.update('rules', (r) => r.map((x) => ({ ...x, autoPromote: 'on' })));
 
   state.feature = { ...state.feature, state: 'merged' as unknown as 'opened', merge_commit_sha: 'f1m' };
   state.develop = 'f1m';

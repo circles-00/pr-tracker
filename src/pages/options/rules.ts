@@ -92,7 +92,11 @@ function ruleCard(rule: Rule): HTMLElement {
       h('label', {}, 'Notify on'),
       h('div', {}, NOTIFY_LABELS.map(([k, label]) => h('label', { class: 'check' }, notifyInputs[k], label))),
     ),
-    h('div', { class: 'small muted' }, `Applies to MRs created after ${new Date(rule.createdAt).toLocaleString()}.`),
+    h(
+      'div',
+      { class: 'small muted' },
+      `Watches open MRs from the last 7 days and any created after ${new Date(rule.createdAt).toLocaleString()}.`,
+    ),
     actionsEl,
   );
 }
