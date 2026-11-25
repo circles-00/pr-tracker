@@ -22,12 +22,13 @@ export async function renderGeneral(container: HTMLElement): Promise<void> {
     value: String(settings.pollMinutes),
   });
 
-  const pollRow = h('div', { class: 'row' }, pollInput, h('span', { class: 'muted' }, 'minutes'));
+  const pollRow = h('div', { class: 'row' }, pollInput, h('span', { class: 'muted grow' }, 'minutes'));
   pollRow.append(
     h(
       'button',
       {
         type: 'button',
+        class: 'primary small',
         onclick: async () => {
           const pollMinutes = Math.max(0.5, Number(pollInput.value) || 1);
           await bus.send('updateSettings', { patch: { pollMinutes } });
@@ -59,6 +60,7 @@ export async function renderGeneral(container: HTMLElement): Promise<void> {
     h(
       'select',
       {
+        class: 'grow',
         disabled: !settings.pageToasts,
         onchange: async (event) => {
           const toastPosition = (event.target as HTMLSelectElement).value as ToastPosition;
@@ -86,25 +88,29 @@ export async function renderGeneral(container: HTMLElement): Promise<void> {
 
   container.replaceChildren(
     h('h2', {}, 'General'),
-    h('div', { class: 'field' }, h('label', {}, 'Check every'), pollRow),
     h(
       'div',
-      { class: 'field' },
-      h('label', {}, 'Show notifications'),
-      h('div', {}, toggle('desktopNotifications', 'System notifications'), toggle('pageToasts', 'Toasts on GitLab pages')),
-    ),
-    h(
-      'div',
-      { class: 'field' },
-      h('label', {}, 'MR activity'),
+      { class: 'card stack' },
+      h('div', { class: 'field' }, h('label', {}, 'Check every'), pollRow),
       h(
         'div',
-        {},
-        toggle('notifyNewThreads', 'New open threads'),
-        toggle('notifyApprovals', 'Required approvals reached'),
+        { class: 'field' },
+        h('label', {}, 'Notifications'),
+        h('div', { class: 'field-checks' }, toggle('desktopNotifications', 'System'), toggle('pageToasts', 'Page toasts')),
       ),
+      h(
+        'div',
+        { class: 'field' },
+        h('label', {}, 'MR activity'),
+        h(
+          'div',
+          { class: 'field-checks' },
+          toggle('notifyNewThreads', 'New open threads'),
+          toggle('notifyApprovals', 'Required approvals'),
+        ),
+      ),
+      h('div', { class: 'field' }, h('label', {}, 'Toast position'), positionRow),
+      h('div', { class: 'small muted' }, 'Unread notifications always appear at the top of the popup, and the badge shows how many.'),
     ),
-    h('div', { class: 'field' }, h('label', {}, 'Toast position'), positionRow),
-    h('div', { class: 'small muted' }, 'Unread notifications always appear at the top of the popup, and the badge shows how many.'),
   );
 }

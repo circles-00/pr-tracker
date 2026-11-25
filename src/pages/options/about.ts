@@ -24,7 +24,7 @@ function isNewerVersion(latest: string, current: string): boolean {
 
 export function renderAbout(container: HTMLElement): void {
   const currentVersion = extension.getVersion();
-  const statusEl = h('span', { class: 'small muted' });
+  const statusEl = h('span', { class: 'small muted update-status' });
 
   const checkBtn = h(
     'button',

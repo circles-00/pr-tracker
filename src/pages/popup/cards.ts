@@ -92,18 +92,20 @@ export function watchCard(watch: Watch, repo?: RepoConfig): HTMLElement {
     links.push(h('a', { href: watch.pipeline.webUrl, target: '_blank' }, `pipeline #${watch.pipeline.id}`));
   }
 
+  const hasFooter = links.length > 0 || isPromotionMr || canPromote || promotable;
+
   return h(
     'div',
     { class: 'card' },
     h(
       'div',
-      { class: 'row' },
+      { class: 'row card-head' },
       h('a', { class: 'grow truncate', href: watch.webUrl, target: '_blank', title: watch.title }, h('strong', {}, watch.title)),
       h(
         'button',
         {
           type: 'button',
-          class: 'ghost small',
+          class: 'ghost icon-btn',
           title: watch.muted ? 'Unmute' : 'Mute',
           onclick: () => void bus.send('patchWatch', { key: watch.key, patch: { muted: !watch.muted } }),
         },
@@ -113,7 +115,7 @@ export function watchCard(watch: Watch, repo?: RepoConfig): HTMLElement {
         'button',
         {
           type: 'button',
-          class: 'ghost small danger',
+          class: 'ghost danger icon-btn',
           title: 'Stop watching',
           onclick: () => void bus.send('unwatch', { key: watch.key }),
         },
@@ -127,23 +129,24 @@ export function watchCard(watch: Watch, repo?: RepoConfig): HTMLElement {
       h('span', { class: `pill ${status.tone}` }, status.text),
     ),
     progressBar(watch, repo),
-    h(
-      'div',
-      { class: 'row small mt-sm' },
-      h('span', { class: 'grow muted' }, ...links.flatMap((l, i) => (i ? [' · ', l] : [l]))),
-      isPromotionMr && h('span', { class: 'pill' }, `${watch.sourceBranch} → ${watch.targetBranch}`),
-      canPromote &&
-        h(
-          'button',
-          {
-            type: 'button',
-            class: 'primary small',
-            onclick: () => void bus.send('promote', { key: watch.key }),
-          },
-          'Promote now',
-        ),
-      promotable && promoteSelect,
-    ),
+    hasFooter &&
+      h(
+        'div',
+        { class: 'row small mt-sm' },
+        h('span', { class: 'grow muted' }, ...links.flatMap((l, i) => (i ? [' · ', l] : [l]))),
+        isPromotionMr && h('span', { class: 'pill' }, `${watch.sourceBranch} → ${watch.targetBranch}`),
+        canPromote &&
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'primary small',
+              onclick: () => void bus.send('promote', { key: watch.key }),
+            },
+            'Promote now',
+          ),
+        promotable && promoteSelect,
+      ),
   );
 }
 
@@ -153,13 +156,13 @@ export function pipelineCard(watch: PipelineWatch): HTMLElement {
     { class: 'card' },
     h(
       'div',
-      { class: 'row' },
+      { class: 'row card-head' },
       h('a', { class: 'grow truncate', href: watch.webUrl, target: '_blank', title: watch.title }, h('strong', {}, `Pipeline #${watch.pipelineId}`)),
       h(
         'button',
         {
           type: 'button',
-          class: 'ghost small',
+          class: 'ghost icon-btn',
           title: watch.muted ? 'Unmute' : 'Mute',
           onclick: () => void bus.send('mutePipeline', { key: watch.key, muted: !watch.muted }),
         },
@@ -169,7 +172,7 @@ export function pipelineCard(watch: PipelineWatch): HTMLElement {
         'button',
         {
           type: 'button',
-          class: 'ghost small danger',
+          class: 'ghost danger icon-btn',
           title: 'Stop watching',
           onclick: () => void bus.send('unwatch', { key: watch.key }),
         },

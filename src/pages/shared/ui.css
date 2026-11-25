@@ -1,10 +1,13 @@
 :root {
   --bg: #ffffff;
   --surface: #f6f6f8;
-  --border: #e3e3e8;
+  --border: #e0e0e6;
   --text: #1f1e24;
   --muted: #6b6a75;
+  --btn-bg: #ebebf0;
+  --btn-hover: #dfdfe7;
   --accent: #fc6d26;
+  --accent-hover: #e85d17;
   --accent-text: #ffffff;
   --ok: #1a7f37;
   --warn: #b26b00;
@@ -16,9 +19,11 @@
   :root {
     --bg: #18171d;
     --surface: #222129;
-    --border: #34333c;
+    --border: #363540;
     --text: #ececf1;
     --muted: #9d9ca8;
+    --btn-bg: #2e2d38;
+    --btn-hover: #3b3a47;
     --link: #63a6e9;
     --ok: #52c46b;
     --warn: #e0a43a;
@@ -37,7 +42,7 @@ a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 h1, h2, h3 { margin: 0; font-weight: 600; }
 h1 { font-size: 15px; }
-h2 { font-size: 14px; margin-bottom: 8px; }
+h2 { font-size: 14px; }
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
 .row { display: flex; align-items: center; gap: 8px; }
@@ -47,7 +52,7 @@ h2 { font-size: 14px; margin-bottom: 8px; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
 }
 .card.tone-info { border-left: 3px solid var(--accent); }
 .card.tone-ok { border-left: 3px solid var(--ok); }
@@ -58,39 +63,54 @@ h2 { font-size: 14px; margin-bottom: 8px; }
 .error-text { color: var(--bad); }
 button, .btn {
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--btn-bg);
   color: var(--text);
   border-radius: 7px;
-  padding: 5px 10px;
-  font: inherit;
+  padding: 6px 12px;
+  font: 500 13px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
-button:hover { border-color: var(--muted); }
-button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-button.ghost { border-color: transparent; background: transparent; }
+button:hover { background: var(--btn-hover); border-color: var(--muted); }
+button.small { padding: 5px 10px; font-size: 12px; }
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+button.ghost { border-color: transparent; background: transparent; padding: 4px 6px; }
+button.ghost:hover { background: var(--btn-bg); border-color: transparent; }
 button.danger { color: var(--bad); }
+button.danger:hover {
+  background: color-mix(in srgb, var(--bad) 15%, var(--btn-bg));
+  border-color: color-mix(in srgb, var(--bad) 45%, var(--border));
+}
+button.ghost.danger:hover { background: color-mix(in srgb, var(--bad) 14%, transparent); border-color: transparent; }
 button:disabled { opacity: 0.55; cursor: default; }
 input[type='text'], input[type='password'], input[type='number'], select {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
   border-radius: 7px;
-  padding: 5px 8px;
+  padding: 6px 9px;
   font: inherit;
   min-width: 0;
 }
 input[type='text'], input[type='password'] { width: 100%; }
-label.check { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; white-space: nowrap; }
+label.check { display: inline-flex; align-items: center; gap: 5px; margin-right: 12px; white-space: nowrap; cursor: pointer; }
 .banner { border-radius: 8px; padding: 8px 10px; background: color-mix(in srgb, var(--bad) 14%, var(--bg)); color: var(--bad); }
 .pill {
   display: inline-block;
-  padding: 1px 7px;
+  padding: 2px 8px;
   border-radius: 999px;
   font-size: 11px;
+  font-weight: 500;
   background: var(--border);
   color: var(--muted);
+  white-space: nowrap;
 }
 .pill.ok { background: color-mix(in srgb, var(--ok) 18%, var(--bg)); color: var(--ok); }
 .pill.warn { background: color-mix(in srgb, var(--warn) 18%, var(--bg)); color: var(--warn); }

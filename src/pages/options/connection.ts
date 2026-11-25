@@ -166,7 +166,7 @@ export async function renderConnection(container: HTMLElement): Promise<void> {
         tokenInput,
         h(
           'button',
-          { type: 'button', onclick: () => void runAction(() => bus.send('signInToken', { token: tokenInput.value })) },
+          { type: 'button', class: 'primary', onclick: () => void runAction(() => bus.send('signInToken', { token: tokenInput.value })) },
           'Save token',
         ),
       ),

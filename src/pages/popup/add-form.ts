@@ -52,7 +52,7 @@ export function addWatchForm(
         },
       },
       input,
-      h('button', { type: 'submit' }, 'Add'),
+      h('button', { type: 'submit', class: 'primary' }, 'Add'),
     ),
     errEl,
   );

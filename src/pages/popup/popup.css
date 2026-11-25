@@ -4,6 +4,8 @@ header .brand { white-space: nowrap; flex-shrink: 0; }
 header #who { justify-content: flex-end; overflow: hidden; }
 header #who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 header button { padding: 4px 6px; flex-shrink: 0; }
+.card-head { gap: 4px; margin-bottom: 4px; }
+.icon-btn { padding: 3px 5px; font-size: 12px; line-height: 1; }
 main { padding: 10px 12px 12px; }
 .avatar { width: 22px; height: 22px; border-radius: 50%; }
 .steps { display: flex; gap: 3px; margin: 8px 0 4px; }

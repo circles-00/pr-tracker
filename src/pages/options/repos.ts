@@ -7,7 +7,7 @@ import { flashSaved } from './flash';
 function repoRow(cfg: RepoConfig): HTMLElement {
   const deployInput = h('input', { type: 'text', value: cfg.deployBranch });
   const fromInput = h('input', { type: 'text', value: cfg.promotion?.from ?? '', placeholder: 'none' });
-  const cell = h('td', {});
+  const cell = h('td', { class: 'actions-cell' });
 
   const save = async () => {
     const deployBranch = deployInput.value.trim() || cfg.deployBranch;
@@ -24,7 +24,7 @@ function repoRow(cfg: RepoConfig): HTMLElement {
   };
 
   cell.append(
-    h('button', { type: 'button', onclick: () => void save() }, 'Save'),
+    h('button', { type: 'button', class: 'primary small', onclick: () => void save() }, 'Save'),
     ' ',
     h(
       'button',
@@ -38,7 +38,7 @@ function repoRow(cfg: RepoConfig): HTMLElement {
     ),
   );
 
-  return h('tr', {}, h('td', {}, cfg.path), h('td', {}, fromInput), h('td', {}, deployInput), cell);
+  return h('tr', {}, h('td', { class: 'truncate', title: cfg.path }, cfg.path), h('td', {}, fromInput), h('td', {}, deployInput), cell);
 }
 
 export async function renderRepos(container: HTMLElement): Promise<void> {
@@ -48,16 +48,20 @@ export async function renderRepos(container: HTMLElement): Promise<void> {
     h('h2', {}, 'Repositories'),
     h(
       'div',
-      { class: 'small muted' },
-      'Detected automatically the first time an MR in a repo is watched. Staging is reached when the deploy branch’s pipeline succeeds. Leave “promote from” empty for repos where MRs go straight to the deploy branch.',
+      { class: 'card stack' },
+      h(
+        'div',
+        { class: 'small muted' },
+        'Auto-detected on first watch. Leave “Promote from” empty for repos where MRs go straight to the deploy branch.',
+      ),
+      repos.length
+        ? h(
+            'table',
+            {},
+            h('tr', {}, h('th', {}, 'Repo'), h('th', {}, 'Promote from'), h('th', {}, 'Deploy'), h('th', {})),
+            repos.map(repoRow),
+          )
+        : h('div', { class: 'muted small' }, 'None yet.'),
     ),
-    repos.length
-      ? h(
-          'table',
-          {},
-          h('tr', {}, h('th', {}, 'Repo'), h('th', {}, 'Promote from'), h('th', {}, 'Deploy branch'), h('th', {})),
-          repos.map(repoRow),
-        )
-      : h('div', { class: 'muted small' }, 'None yet.'),
   );
 }
