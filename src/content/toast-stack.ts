@@ -55,7 +55,7 @@ export class ToastStackController {
   private readonly stack: HTMLDivElement;
   private position: ToastPosition = 'bottom-right';
 
-  constructor(private readonly layout: SidebarLayoutTracker) {
+  constructor(private readonly layout?: SidebarLayoutTracker) {
     this.host = document.createElement('div');
     this.host.id = 'gitlab-reminders-toasts';
     this.host.style.position = 'fixed';
@@ -96,7 +96,7 @@ export class ToastStackController {
   }
 
   destroy(): void {
-    this.layout.removeFollower(this.host);
+    this.layout?.removeFollower(this.host);
     this.host.remove();
   }
 
@@ -108,11 +108,11 @@ export class ToastStackController {
 
     this.stack.classList.toggle('top', isTop);
     this.host.style.top = isTop ? '20px' : 'auto';
-    this.host.style.bottom = isTop ? 'auto' : isLeft ? '70px' : '20px';
+    this.host.style.bottom = isTop ? 'auto' : isLeft && this.layout ? '70px' : '20px';
     this.host.style.right = isLeft ? 'auto' : '20px';
     this.host.style.left = isLeft ? '20px' : 'auto';
 
-    if (this.host.isConnected) {
+    if (this.host.isConnected && this.layout) {
       if (isLeft) this.layout.addFollower(this.host);
       else this.layout.removeFollower(this.host);
     }
@@ -120,7 +120,7 @@ export class ToastStackController {
 
   private pruneHostIfEmpty(): void {
     if (this.stack.children.length === 0 && this.host.isConnected) {
-      this.layout.removeFollower(this.host);
+      this.layout?.removeFollower(this.host);
       this.host.remove();
     }
   }

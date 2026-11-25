@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.ts",
     "build:release": "node scripts/build.ts --release",
+    "pack": "node scripts/pack.ts",
     "watch": "node scripts/build.ts --watch",
     "typecheck": "tsc --noEmit",
     "test": "esbuild test/engine.test.ts --bundle --platform=node --format=esm --outfile=.test/engine.test.mjs --log-level=warning && node --test .test/engine.test.mjs"
