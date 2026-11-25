@@ -80,4 +80,13 @@ npm run watch          # rebuild on file changes (scripts + static assets)
 npm run typecheck      # TypeScript check
 npm test               # run state-machine and client tests
 npm run build:release  # minified build without dev manifest key or sourcemaps
+npm run pack           # package dist/ into release/*.zip and release/*.crx
 ```
+
+## Maintenance
+
+This repository is provided as-is and will not be actively maintained unless critical issues need attention.
+
+## License
+
+[MIT](LICENSE)
