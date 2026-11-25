@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>PR Tracker</title>
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="row">
+      <h1 class="brand">🔔 PR Tracker</h1>
+      <span id="who" class="row small muted grow"></span>
+      <button id="refresh" class="ghost" type="button" title="Check now">⟳</button>
+      <button id="pause" class="ghost" type="button" title="Pause / resume"></button>
+      <button id="settings" class="ghost" type="button" title="Settings">⚙</button>
+    </header>
+    <main id="main" class="stack"></main>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

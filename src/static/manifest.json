@@ -1,0 +1,50 @@
+{
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoS+bgKsP8OxXsOCoUeH+3hvEvQZTP7fKTOZAXJE66WPeSEXV2Z/j6/IefXE5bfNQ3vv5Vl6Rn1GtrahDriGkDLPuDKm6dFYtfaIiNXmmqadWLNt135uSM03rMCHjRVUDK1L5Eyl+kiMLK60Xtvj181vJRILNatsrJTQR/at6DMEnWJ+w9/RaoKwNR8bhAJPLp1JBBWGfS6DwNbh7yUjLQNptG1l17JMXAZ/6R6M4YH8JhSDvQaUDBXGKVwF7tcq0ebGz3Go5Lkh6PO4EfobhQ1KV+nWq7aCkGzj9QBiWSXnwlmyxjk9VejuvapVmljc13a/I6lDH787Op3fheNuNuwIDAQAB",
+  "manifest_version": 3,
+  "name": "PR Tracker",
+  "description": "Get notified when your GitLab MRs reach staging, with optional automatic develop → master promotion.",
+  "version": "0.1.0",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PR Tracker"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "alarms",
+    "notifications",
+    "storage",
+    "identity",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://gitlab.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gitlab.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
