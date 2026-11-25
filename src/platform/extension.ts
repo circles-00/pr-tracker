@@ -3,6 +3,10 @@ export class ExtensionApi {
     return Boolean(chrome.runtime?.id);
   }
 
+  getVersion(): string {
+    return chrome.runtime.getManifest().version;
+  }
+
   openOptions(): void {
     chrome.runtime.openOptionsPage();
   }

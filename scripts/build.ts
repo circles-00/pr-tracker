@@ -5,6 +5,7 @@ import { generateIcons } from './icons.ts';
 
 const watchMode = process.argv.includes('--watch');
 const releaseMode = process.argv.includes('--release');
+const storeMode = process.argv.includes('--store');
 const outDir = 'dist';
 
 const STATIC_ASSETS: readonly (readonly [src: string, dest: string])[] = [
@@ -25,7 +26,7 @@ async function writeManifest(): Promise<void> {
   const manifest = JSON.parse(manifestRaw) as Record<string, unknown>;
   manifest.version = pkg.version;
 
-  if (releaseMode) {
+  if (storeMode) {
     delete manifest.key;
   }
 
