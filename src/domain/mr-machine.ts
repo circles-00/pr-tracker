@@ -39,6 +39,37 @@ const BLOCKED_REASONS: Record<string, string> = {
 
 const shortSha = (sha?: string): string => sha?.slice(0, 8) ?? '?';
 
+function snippetOf(body: string, maxLen = 120): string {
+  const collapsed = body.replace(/\s+/g, ' ').trim();
+  return collapsed.length > maxLen ? `${collapsed.slice(0, maxLen - 1)}…` : collapsed;
+}
+
+async function checkOpenThreads(gl: GitLabClient, watch: Watch): Promise<void> {
+  const { settings, me } = await storage.getMany(['settings', 'me']);
+  if (!settings.notifyNewThreads) return;
+
+  const discussions = await gl.mrDiscussions(watch.projectId, watch.iid);
+
+  for (const discussion of discussions) {
+    if (discussion.individual_note) continue;
+
+    const openNote = discussion.notes.find((n) => !n.system && n.resolvable && !n.resolved);
+    if (!openNote) continue;
+    if (me && openNote.author.username === me.username) continue;
+
+    const preview = snippetOf(openNote.body);
+    await notifications.notifyWatch(
+      watch,
+      'threads',
+      `thread-${discussion.id}`,
+      '💬 New open thread',
+      preview ? `@${openNote.author.username}: ${preview}` : `Opened by @${openNote.author.username}`,
+      `${watch.webUrl}#note_${openNote.id}`,
+      { severity: 'warning' },
+    );
+  }
+}
+
 async function finishWatch(watch: Watch, pipelineUrl: string): Promise<void> {
   watch.stage = 'done';
   await notifications.notifyWatch(
@@ -82,6 +113,7 @@ async function stepOpen(gl: GitLabClient, watch: Watch, cfg: RepoConfig): Promis
       );
     }
 
+    await checkOpenThreads(gl, watch);
     return;
   }
 

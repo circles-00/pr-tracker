@@ -3,7 +3,7 @@ import type { FeedItem, NotifyPrefs, NotifySeverity, PipelineWatch, Watch } from
 import { session, type PendingNotification } from './session';
 import { storage } from './storage';
 
-export type NotifyKind = keyof NotifyPrefs;
+export type NotifyKind = keyof NotifyPrefs | 'threads';
 
 export interface NotificationPayload {
   title: string;
@@ -35,7 +35,8 @@ export class NotificationService {
     watch.log.push({ at: new Date().toISOString(), text: title });
 
     if (watch.catchingUp && !opts.action) return;
-    if (watch.muted || !watch.notify[kind]) return;
+    if (watch.muted) return;
+    if (kind !== 'threads' && !watch.notify[kind]) return;
 
     await this.show({
       title,

@@ -49,6 +49,11 @@ const state = {
   develop: 'd0',
   ancestry: new Set<string>(),
   pipelines: [] as { id: number; status: string; ref: string; sha: string }[],
+  discussions: [] as {
+    id: string;
+    individual_note: boolean;
+    notes: { id: number; body: string; author: { username: string }; system: boolean; resolvable: boolean; resolved?: boolean }[];
+  }[],
   calls: [] as string[],
 };
 
@@ -105,6 +110,7 @@ const baseFetch = async (url: string, init: { method?: string; body?: string } =
     return ok({ id: state.ancestry.has(`${a}>${b}`) ? a : 'other' });
   }
   if (path === `/projects/${PID}/merge_requests/1`) return ok(mrJson(1, state.feature));
+  if (path === `/projects/${PID}/merge_requests/1/discussions`) return ok(state.discussions);
   if (path === `/projects/${PID}/merge_requests` && method === 'GET') {
     return ok(state.promo && state.promo.state === 'opened' ? [mrJson(state.promo.iid, state.promo)] : []);
   }
@@ -339,4 +345,66 @@ test('on_master status is green while pipeline runs and red if it fails, and toa
   base.pipeline.status = 'failed';
   const failed = stageText(base);
   assert.equal(failed.tone, 'bad');
+});
+
+test('notifies for new open threads from others, ignores comments/resolved/own threads, and respects toggle', async () => {
+  const mr = mrJson(1, { state: 'opened' });
+  state.feature = { iid: 1, state: 'opened', target_branch: 'develop', merge_commit_sha: null };
+  const w = createWatch(mr, 'g/app', {
+    ruleId: null,
+    notify: { merged: true, promotion: true, masterMerged: true, staging: true, failures: true },
+    autoPromote: 'off',
+  });
+  await store.update('watches', (all) => {
+    all[w.key] = w;
+  });
+
+  state.discussions = [
+    {
+      id: 'd-comment',
+      individual_note: true,
+      notes: [{ id: 10, body: 'Just a regular comment', author: { username: 'sam' }, system: false, resolvable: false }],
+    },
+    {
+      id: 'd-resolved',
+      individual_note: false,
+      notes: [{ id: 11, body: 'Already resolved', author: { username: 'sam' }, system: false, resolvable: true, resolved: true }],
+    },
+    {
+      id: 'd-self',
+      individual_note: false,
+      notes: [{ id: 12, body: 'My own thread', author: { username: 'nik' }, system: false, resolvable: true, resolved: false }],
+    },
+    {
+      id: 'd-open',
+      individual_note: false,
+      notes: [{ id: 13, body: 'Please handle null here', author: { username: 'sam' }, system: false, resolvable: true, resolved: false }],
+    },
+  ];
+
+  const before = notifications.length;
+  await runPollTick();
+  assert.equal(notifications.length, before + 1);
+  assert.equal(notifications.at(-1)!.title, '💬 New open thread');
+  assert.match(notifications.at(-1)!.message, /@sam: Please handle null here/);
+
+  // Deduplicated on subsequent ticks
+  await runPollTick();
+  assert.equal(notifications.length, before + 1);
+
+  // Disabled via settings toggle
+  await store.update('settings', (s) => ({ ...s, notifyNewThreads: false }));
+  state.discussions.push({
+    id: 'd-open-2',
+    individual_note: false,
+    notes: [{ id: 14, body: 'Another thread', author: { username: 'sam' }, system: false, resolvable: true, resolved: false }],
+  });
+  await runPollTick();
+  assert.equal(notifications.length, before + 1);
+
+  await store.update('settings', (s) => ({ ...s, notifyNewThreads: true }));
+  await store.update('watches', (all) => {
+    delete all[w.key];
+  });
+  state.discussions = [];
 });

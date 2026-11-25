@@ -115,6 +115,7 @@ export interface Settings {
   desktopNotifications: boolean;
   pageToasts: boolean;
   toastPosition: ToastPosition;
+  notifyNewThreads: boolean;
 }
 
 export interface FeedItem {
@@ -181,6 +182,21 @@ export interface GitLabProject {
   path_with_namespace: string;
   default_branch: string;
   web_url: string;
+}
+
+export interface GitLabDiscussionNote {
+  id: number;
+  body: string;
+  author: { username: string };
+  system: boolean;
+  resolvable: boolean;
+  resolved?: boolean;
+}
+
+export interface GitLabDiscussion {
+  id: string;
+  individual_note: boolean;
+  notes: GitLabDiscussionNote[];
 }
 
 export type WatchPatch = Partial<Pick<Watch, 'muted' | 'autoPromote' | 'notify'>>;

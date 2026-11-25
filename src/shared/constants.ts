@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS: Settings = {
   desktopNotifications: true,
   pageToasts: true,
   toastPosition: 'bottom-right',
+  notifyNewThreads: true,
 };
 
 export const POLL_ALARM_NAME = 'poll';

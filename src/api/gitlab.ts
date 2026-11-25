@@ -1,5 +1,5 @@
 import { storage } from '../platform/storage';
-import type { GitLabMergeRequest, GitLabPipeline, GitLabProject } from '../shared/types';
+import type { GitLabDiscussion, GitLabMergeRequest, GitLabPipeline, GitLabProject } from '../shared/types';
 import { auth } from './auth';
 
 export class GitLabError extends Error {
@@ -140,6 +140,12 @@ export class GitLabClient {
 
   mr(projectId: number, iid: number) {
     return this.get<GitLabMergeRequest>(`/projects/${projectId}/merge_requests/${iid}`);
+  }
+
+  mrDiscussions(projectId: number, iid: number) {
+    return this.get<GitLabDiscussion[]>(`/projects/${projectId}/merge_requests/${iid}/discussions`, {
+      per_page: 100,
+    });
   }
 
   searchMrs(query: Query) {
