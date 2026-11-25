@@ -28,6 +28,7 @@ async function writeManifest(): Promise<void> {
 
   if (storeMode) {
     delete manifest.key;
+    delete manifest.update_url;
   }
 
   await writeFile(`${outDir}/manifest.json`, `${JSON.stringify(manifest, null, 2)}\n`);

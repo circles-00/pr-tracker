@@ -4,6 +4,7 @@
   "name": "PR Tracker",
   "description": "Get notified when your GitLab MRs reach staging, with optional automatic develop → master promotion.",
   "version": "0.1.0",
+  "update_url": "https://raw.githubusercontent.com/circles-00/pr-tracker/main/updates.xml",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",

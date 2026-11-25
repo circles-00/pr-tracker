@@ -7,6 +7,18 @@ export class ExtensionApi {
     return chrome.runtime.getManifest().version;
   }
 
+  reload(): void {
+    chrome.runtime.reload();
+  }
+
+  requestUpdateCheck(): Promise<{ status: string; version?: string }> {
+    return new Promise((resolve) => {
+      chrome.runtime.requestUpdateCheck((status, details) => {
+        resolve({ status, version: details?.version });
+      });
+    });
+  }
+
   openOptions(): void {
     chrome.runtime.openOptionsPage();
   }

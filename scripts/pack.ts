@@ -125,7 +125,17 @@ function loadSigningKey(): KeyObject {
   return privateKey;
 }
 
-function buildCrx3(zipBuffer: Buffer, privateKey: KeyObject): Buffer {
+function crxIdToExtensionId(crxId: Buffer): string {
+  let id = '';
+  for (const byte of crxId) {
+    id += String.fromCharCode(97 + ((byte >> 4) & 0x0f));
+    id += String.fromCharCode(97 + (byte & 0x0f));
+  }
+
+  return id;
+}
+
+function buildCrx3(zipBuffer: Buffer, privateKey: KeyObject): { crx: Buffer; extensionId: string } {
   const publicKeyDer = createPublicKey(privateKey).export({ type: 'spki', format: 'der' });
   const crxId = createHash('sha256').update(publicKeyDer).digest().subarray(0, 16);
   const signedHeaderData = encodeLengthDelimited(1, crxId);
@@ -155,21 +165,43 @@ function buildCrx3(zipBuffer: Buffer, privateKey: KeyObject): Buffer {
   prelude.writeUInt32LE(3, 4);
   prelude.writeUInt32LE(header.length, 8);
 
-  return Buffer.concat([prelude, header, zipBuffer]);
+  return {
+    crx: Buffer.concat([prelude, header, zipBuffer]),
+    extensionId: crxIdToExtensionId(crxId),
+  };
+}
+
+function buildUpdatesXml(extensionId: string, version: string, crxUrl: string): string {
+  return `<?xml version='1.0' encoding='UTF-8'?>
+<gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+  <app appid='${extensionId}'>
+    <updatecheck codebase='${crxUrl}' version='${version}' />
+  </app>
+</gupdate>
+`;
 }
 
 const pkg = JSON.parse(await readFile('package.json', 'utf8')) as { version: string };
 const versionLabel = (process.env.RELEASE_TAG || `v${pkg.version}`).replace(/^v/, '');
+const repo = process.env.GITHUB_REPOSITORY || 'circles-00/pr-tracker';
 
 await rm(OUT_DIR, { recursive: true, force: true });
 await mkdir(OUT_DIR, { recursive: true });
 
 const files = await collectFiles(DIST_DIR);
 const zipBuffer = buildZip(files);
-const crxBuffer = buildCrx3(zipBuffer, loadSigningKey());
+const { crx: crxBuffer, extensionId } = buildCrx3(zipBuffer, loadSigningKey());
 
 const zipPath = join(OUT_DIR, `pr-tracker-v${versionLabel}.zip`);
 const crxPath = join(OUT_DIR, `pr-tracker-v${versionLabel}.crx`);
+const crxDownloadUrl = `https://github.com/${repo}/releases/download/v${versionLabel}/pr-tracker-v${versionLabel}.crx`;
+const updatesXml = buildUpdatesXml(extensionId, pkg.version, crxDownloadUrl);
 
-await Promise.all([writeFile(zipPath, zipBuffer), writeFile(crxPath, crxBuffer)]);
-console.log(`Packaged ${zipPath} (${zipBuffer.length} bytes) and ${crxPath} (${crxBuffer.length} bytes)`);
+await Promise.all([
+  writeFile(zipPath, zipBuffer),
+  writeFile(crxPath, crxBuffer),
+  writeFile('updates.xml', updatesXml),
+]);
+console.log(
+  `Packaged ${zipPath} (${zipBuffer.length} bytes), ${crxPath} (${crxBuffer.length} bytes), updates.xml (appid=${extensionId})`,
+);
