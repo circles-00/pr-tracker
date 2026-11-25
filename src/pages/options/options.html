@@ -7,19 +7,24 @@
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <div class="page">
-      <h1 class="page-title">🔔 PR Tracker</h1>
-      <section id="connection"></section>
-      <div class="columns">
-        <div class="col">
-          <section id="rules"></section>
-        </div>
-        <div class="col">
-          <section id="general"></section>
-          <section id="repos"></section>
-          <section id="about"></section>
-        </div>
-      </div>
+    <div class="layout">
+      <aside class="sidebar">
+        <h1 class="brand">🔔 PR Tracker</h1>
+        <nav class="nav" aria-label="Settings sections">
+          <button type="button" class="nav-item active" data-target="connection">Account</button>
+          <button type="button" class="nav-item" data-target="rules">Rules</button>
+          <button type="button" class="nav-item" data-target="general">General</button>
+          <button type="button" class="nav-item" data-target="repos">Repositories</button>
+          <button type="button" class="nav-item" data-target="about">About</button>
+        </nav>
+      </aside>
+      <main class="content">
+        <section id="connection"></section>
+        <section id="rules"></section>
+        <section id="general"></section>
+        <section id="repos"></section>
+        <section id="about"></section>
+      </main>
     </div>
     <script src="options.js" type="module"></script>
   </body>

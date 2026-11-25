@@ -5,6 +5,7 @@ import { createDeferredRenderer } from '../shared/storage-sync';
 import { renderAbout } from './about';
 import { renderConnection } from './connection';
 import { renderGeneral } from './general';
+import { initSectionNav } from './nav';
 import { renderRepos } from './repos';
 import { renderRules } from './rules';
 
@@ -33,6 +34,7 @@ storage.onChanged((changes) => {
   if (changes.repos) scheduleRepos();
 });
 
+initSectionNav();
 renderAbout(aboutEl);
 
 void Promise.all([
