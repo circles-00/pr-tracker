@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   release:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
 
     steps:
@@ -32,28 +33,57 @@ jobs:
           npm run typecheck
           npm test
 
-      - name: Compute release tag and changelog
+      - name: Bump minor version and generate changelog
         id: meta
         run: |
-          VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")
-          TAG="v${VERSION}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            TAG="v${VERSION}-${GITHUB_RUN_NUMBER}"
-          fi
+          PREV_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1 || true)
+          NEXT_VERSION=$(PREV_TAG="$PREV_TAG" node -e "
+            const fs = require('node:fs');
+            const pkgVer = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+            const prevTag = (process.env.PREV_TAG || '').replace(/^v/, '');
+            const parse = (v) => v.split('.').map((n) => Number(n) || 0);
+            const gt = (a, b) => a[0] !== b[0] ? a[0] > b[0] : a[1] !== b[1] ? a[1] > b[1] : a[2] > b[2];
 
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+            if (!prevTag) {
+              console.log(pkgVer);
+            } else {
+              const p = parse(pkgVer);
+              const t = parse(prevTag);
+              if (gt(p, t)) {
+                console.log(pkgVer);
+              } else {
+                console.log(t[0] + '.' + (t[1] + 1) + '.0');
+              }
+            }
+          ")
+
+          TAG="v${NEXT_VERSION}"
+
           {
             echo "## Changelog"
             echo ""
             if [ -n "$PREV_TAG" ]; then
-              git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)"
+              git log "${PREV_TAG}..HEAD" --invert-grep --grep='^chore(release):' --pretty=format:"- %s (%h)"
             else
-              git log --pretty=format:"- %s (%h)"
+              git log --invert-grep --grep='^chore(release):' --pretty=format:"- %s (%h)"
             fi
             echo ""
           } > release-notes.md
 
+          npm version "$NEXT_VERSION" --no-git-tag-version --allow-same-version
+
+          echo "version=${NEXT_VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit bumped version
+        run: |
+          if [ -n "$(git status --porcelain package.json package-lock.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package.json package-lock.json
+            git commit -m "chore(release): ${{ steps.meta.outputs.tag }} [skip ci]"
+            git push origin HEAD:main
+          fi
 
       - name: Build and package extension
         env:
@@ -70,5 +100,6 @@ jobs:
           gh release create "${{ steps.meta.outputs.tag }}" \
             release/*.zip \
             release/*.crx \
+            --target main \
             --title "PR Tracker ${{ steps.meta.outputs.tag }}" \
             --notes-file release-notes.md
