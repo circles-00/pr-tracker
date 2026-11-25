@@ -188,9 +188,21 @@ const repo = process.env.GITHUB_REPOSITORY || 'circles-00/pr-tracker';
 await rm(OUT_DIR, { recursive: true, force: true });
 await mkdir(OUT_DIR, { recursive: true });
 
+const signingKey = loadSigningKey();
+const publicKeyBase64 = createPublicKey(signingKey).export({ type: 'spki', format: 'der' }).toString('base64');
+
 const files = await collectFiles(DIST_DIR);
+if (process.env.CRX_PRIVATE_KEY?.trim()) {
+  const manifestFile = files.find((f) => f.name === 'manifest.json');
+  if (manifestFile) {
+    const manifest = JSON.parse(manifestFile.data.toString('utf8')) as Record<string, unknown>;
+    manifest.key = publicKeyBase64;
+    manifestFile.data = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  }
+}
+
 const zipBuffer = buildZip(files);
-const { crx: crxBuffer, extensionId } = buildCrx3(zipBuffer, loadSigningKey());
+const { crx: crxBuffer, extensionId } = buildCrx3(zipBuffer, signingKey);
 
 const zipPath = join(OUT_DIR, `pr-tracker-v${versionLabel}.zip`);
 const crxPath = join(OUT_DIR, `pr-tracker-v${versionLabel}.crx`);

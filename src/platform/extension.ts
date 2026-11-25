@@ -79,6 +79,10 @@ export class ExtensionApi {
     chrome.runtime.onStartup.addListener(listener);
   }
 
+  onUpdateAvailable(listener: (version: string) => void): void {
+    chrome.runtime.onUpdateAvailable.addListener((details) => listener(details.version));
+  }
+
   hasOriginPermission(origin: string): Promise<boolean> {
     return chrome.permissions.contains({ origins: [`${origin}/*`] });
   }

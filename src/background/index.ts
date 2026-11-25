@@ -69,3 +69,7 @@ extension.onStartup(() => {
   void schedulePollAlarm();
   void runLockedTick();
 });
+
+extension.onUpdateAvailable(() => {
+  extension.reload();
+});
