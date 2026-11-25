@@ -116,6 +116,7 @@ export interface Settings {
   pageToasts: boolean;
   toastPosition: ToastPosition;
   notifyNewThreads: boolean;
+  notifyApprovals: boolean;
 }
 
 export interface FeedItem {
@@ -197,6 +198,13 @@ export interface GitLabDiscussion {
   id: string;
   individual_note: boolean;
   notes: GitLabDiscussionNote[];
+}
+
+export interface GitLabApprovals {
+  approved: boolean;
+  approvals_required: number;
+  approvals_left: number;
+  approved_by: { user: { username: string; name?: string } }[];
 }
 
 export type WatchPatch = Partial<Pick<Watch, 'muted' | 'autoPromote' | 'notify'>>;

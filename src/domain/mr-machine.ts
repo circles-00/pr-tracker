@@ -4,6 +4,7 @@ import { notifications } from '../platform/notifications';
 import { storage } from '../platform/storage';
 import {
   DEFAULT_NOTIFY,
+  DEFAULT_REQUIRED_APPROVALS,
   FAILED_PIPELINE_STATUSES,
   FINISHED_STAGES,
   STALE_AFTER_MS,
@@ -70,6 +71,41 @@ async function checkOpenThreads(gl: GitLabClient, watch: Watch): Promise<void> {
   }
 }
 
+async function checkApprovals(gl: GitLabClient, watch: Watch): Promise<void> {
+  if (watch.sent.includes('approved')) return;
+
+  const settings = await storage.get('settings');
+  if (!settings.notifyApprovals) return;
+
+  let approvals;
+  try {
+    approvals = await gl.mrApprovals(watch.projectId, watch.iid);
+  } catch (err) {
+    if (err instanceof GitLabError && (err.status === 403 || err.status === 404)) return;
+    throw err;
+  }
+
+  const required = approvals.approvals_required > 0 ? approvals.approvals_required : DEFAULT_REQUIRED_APPROVALS;
+  const approvers = approvals.approved_by.map((entry) => `@${entry.user.username}`);
+  const satisfied =
+    approvals.approvals_required > 0
+      ? approvals.approved && approvers.length >= required
+      : approvers.length >= required;
+
+  if (!satisfied) return;
+
+  const byText = approvers.length > 0 ? `Approved by ${approvers.join(', ')} (${approvers.length}/${required}).` : `${approvers.length}/${required} approvals reached.`;
+  await notifications.notifyWatch(
+    watch,
+    'approvals',
+    'approved',
+    '👍 MR approved',
+    `${byText} Ready to merge.`,
+    watch.webUrl,
+    { severity: 'success' },
+  );
+}
+
 async function finishWatch(watch: Watch, pipelineUrl: string): Promise<void> {
   watch.stage = 'done';
   await notifications.notifyWatch(
@@ -114,6 +150,7 @@ async function stepOpen(gl: GitLabClient, watch: Watch, cfg: RepoConfig): Promis
     }
 
     await checkOpenThreads(gl, watch);
+    await checkApprovals(gl, watch);
     return;
   }
 

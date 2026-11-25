@@ -11,11 +11,29 @@ export class ExtensionApi {
     chrome.runtime.reload();
   }
 
-  requestUpdateCheck(): Promise<{ status: string; version?: string }> {
+  requestUpdateCheck(timeoutMs = 3000): Promise<{ status: string; version?: string }> {
     return new Promise((resolve) => {
-      chrome.runtime.requestUpdateCheck((status, details) => {
-        resolve({ status, version: details?.version });
-      });
+      let settled = false;
+      const done = (result: { status: string; version?: string }) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(result);
+      };
+
+      const timer = setTimeout(() => done({ status: 'timeout' }), timeoutMs);
+
+      try {
+        chrome.runtime.requestUpdateCheck((status, details) => {
+          if (chrome.runtime.lastError) {
+            done({ status: 'error' });
+            return;
+          }
+          done({ status, version: details?.version });
+        });
+      } catch {
+        done({ status: 'error' });
+      }
     });
   }
 

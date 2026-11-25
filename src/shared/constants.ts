@@ -17,7 +17,10 @@ export const DEFAULT_SETTINGS: Settings = {
   pageToasts: true,
   toastPosition: 'bottom-right',
   notifyNewThreads: true,
+  notifyApprovals: true,
 };
+
+export const DEFAULT_REQUIRED_APPROVALS = 2;
 
 export const POLL_ALARM_NAME = 'poll';
 export const SELF_HOSTED_SCRIPT_ID = 'self-hosted';

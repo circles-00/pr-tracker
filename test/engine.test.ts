@@ -54,6 +54,12 @@ const state = {
     individual_note: boolean;
     notes: { id: number; body: string; author: { username: string }; system: boolean; resolvable: boolean; resolved?: boolean }[];
   }[],
+  approvals: {
+    approved: false,
+    approvals_required: 0,
+    approvals_left: 0,
+    approved_by: [] as { user: { username: string } }[],
+  },
   calls: [] as string[],
 };
 
@@ -111,6 +117,7 @@ const baseFetch = async (url: string, init: { method?: string; body?: string } =
   }
   if (path === `/projects/${PID}/merge_requests/1`) return ok(mrJson(1, state.feature));
   if (path === `/projects/${PID}/merge_requests/1/discussions`) return ok(state.discussions);
+  if (path === `/projects/${PID}/merge_requests/1/approvals`) return ok(state.approvals);
   if (path === `/projects/${PID}/merge_requests` && method === 'GET') {
     return ok(state.promo && state.promo.state === 'opened' ? [mrJson(state.promo.iid, state.promo)] : []);
   }
@@ -407,4 +414,49 @@ test('notifies for new open threads from others, ignores comments/resolved/own t
     delete all[w.key];
   });
   state.discussions = [];
+});
+
+test('notifies when required approvals are reached (defaults to 2 when repo has 0 required)', async () => {
+  const mr = mrJson(1, { state: 'opened' });
+  state.feature = { iid: 1, state: 'opened', target_branch: 'develop', merge_commit_sha: null };
+  const w = createWatch(mr, 'g/app', {
+    ruleId: null,
+    notify: { merged: true, promotion: true, masterMerged: true, staging: true, failures: true },
+    autoPromote: 'off',
+  });
+  await store.update('watches', (all) => {
+    all[w.key] = w;
+  });
+
+  // 1 approval is not enough when repo reports approvals_required = 0 (fallback = 2)
+  state.approvals = {
+    approved: true,
+    approvals_required: 0,
+    approvals_left: 0,
+    approved_by: [{ user: { username: 'alice' } }],
+  };
+  const before = notifications.length;
+  await runPollTick();
+  assert.equal(notifications.length, before);
+
+  // 2 approvals satisfies fallback of 2
+  state.approvals = {
+    approved: true,
+    approvals_required: 0,
+    approvals_left: 0,
+    approved_by: [{ user: { username: 'alice' } }, { user: { username: 'bob' } }],
+  };
+  await runPollTick();
+  assert.equal(notifications.length, before + 1);
+  assert.equal(notifications.at(-1)!.title, '👍 MR approved');
+  assert.match(notifications.at(-1)!.message, /Approved by @alice, @bob \(2\/2\)/);
+
+  // Deduplicated on subsequent ticks
+  await runPollTick();
+  assert.equal(notifications.length, before + 1);
+
+  await store.update('watches', (all) => {
+    delete all[w.key];
+  });
+  state.approvals = { approved: false, approvals_required: 0, approvals_left: 0, approved_by: [] };
 });

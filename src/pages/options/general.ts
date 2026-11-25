@@ -38,7 +38,7 @@ export async function renderGeneral(container: HTMLElement): Promise<void> {
     ),
   );
 
-  const toggle = (key: 'desktopNotifications' | 'pageToasts' | 'notifyNewThreads', label: string) =>
+  const toggle = (key: 'desktopNotifications' | 'pageToasts' | 'notifyNewThreads' | 'notifyApprovals', label: string) =>
     h(
       'label',
       { class: 'check' },
@@ -97,7 +97,12 @@ export async function renderGeneral(container: HTMLElement): Promise<void> {
       'div',
       { class: 'field' },
       h('label', {}, 'MR activity'),
-      h('div', {}, toggle('notifyNewThreads', 'New open threads on watched MRs')),
+      h(
+        'div',
+        {},
+        toggle('notifyNewThreads', 'New open threads'),
+        toggle('notifyApprovals', 'Required approvals reached'),
+      ),
     ),
     h('div', { class: 'field' }, h('label', {}, 'Toast position'), positionRow),
     h('div', { class: 'small muted' }, 'Unread notifications always appear at the top of the popup, and the badge shows how many.'),

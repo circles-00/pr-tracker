@@ -36,10 +36,21 @@ export function renderAbout(container: HTMLElement): void {
         statusEl.textContent = 'Checking…';
 
         try {
-          const check = await extension.requestUpdateCheck();
+          const res = await fetch(LATEST_RELEASE_API);
+          if (!res.ok) throw new Error(`GitHub returned ${res.status}`);
+
+          const release = (await res.json()) as GitHubRelease;
+          if (!isNewerVersion(release.tag_name, currentVersion)) {
+            statusEl.textContent = `Up to date (v${currentVersion})`;
+            return;
+          }
+
+          statusEl.textContent = `Found ${release.tag_name}, requesting update…`;
+          const check = await extension.requestUpdateCheck(3000);
+
           if (check.status === 'update_available') {
             statusEl.replaceChildren(
-              `Update v${check.version ?? 'new'} ready · `,
+              `Update v${check.version ?? release.tag_name.replace(/^v/, '')} ready · `,
               h(
                 'button',
                 {
@@ -50,15 +61,6 @@ export function renderAbout(container: HTMLElement): void {
                 'Restart to apply',
               ),
             );
-            return;
-          }
-
-          const res = await fetch(LATEST_RELEASE_API);
-          if (!res.ok) throw new Error(`GitHub returned ${res.status}`);
-
-          const release = (await res.json()) as GitHubRelease;
-          if (!isNewerVersion(release.tag_name, currentVersion)) {
-            statusEl.textContent = 'Up to date';
             return;
           }
 
